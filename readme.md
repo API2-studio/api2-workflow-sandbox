@@ -82,6 +82,34 @@ This checks that the HTTP service is running; it does not test callback connecti
 docker logs canopus-workflow-sandbox
 ```
 
+## Build and publish to Docker Hub
+
+The Makefile targets [api2studio/workflow-sandbox on Docker Hub](https://hub.docker.com/r/api2studio/workflow-sandbox). You need Docker running, `make`, and a Docker Hub account with push access to that repository.
+
+```sh
+# Authenticate with Docker Hub.
+docker login
+
+# Build with the version from version.txt and the latest tag.
+make build
+
+# Build and push both the version tag and latest.
+make push
+```
+
+Edit `version.txt` to set the release version (currently `0.0.1`). This file is the source of the version tag; `TAG` overrides are ignored. `make build` tags the same image with both that version and `latest`. `make push` builds first, then pushes the version tag followed by `latest`, stopping if a command fails. Running `make` or `make help` shows the available commands.
+
+| Make variable | Default | Purpose |
+| --- | --- | --- |
+| `IMAGE` | `api2studio/workflow-sandbox` | Image repository, without a tag. |
+| `PLATFORM` | Docker daemon's architecture | Optional single target platform, such as `linux/amd64` or `linux/arm64`. |
+
+For example, to publish an AMD64 image from an ARM machine, use `make push PLATFORM=linux/amd64` (requires cross-platform build support in Docker). These targets publish a single-platform image.
+
+The Makefile's image name differs from the local shorthand used in the earlier `docker run` example. To run an image built or published with Make, replace the final image argument with `api2studio/workflow-sandbox:latest` (or your selected tag).
+
+Runtime environment variables are supplied when starting the container, not when building or pushing. `.dockerignore` excludes local `.env` files and Git metadata from the build context.
+
 ## Ports and configuration changes
 
 Docker port mappings use `HOST_PORT:CONTAINER_PORT`. To expose the default internal port on host port `8081`, use `--publish 127.0.0.1:8081:3000` and leave `PORT=3000`.
